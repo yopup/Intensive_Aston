@@ -1,0 +1,93 @@
+2026-04-26 16:23:40 [main] INFO  org.example.Main - Starting User Service Application
+2026-04-26 16:28:49 [main] ERROR org.example.Main - Application error: No line found
+2026-04-26 16:28:50 [main] ERROR org.example.util.HibernateUtil - Initial SessionFactory creation failed: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Error calling Driver#connect [FATAL: password authentication failed for user "postgres"] [null]
+2026-04-26 16:48:10 [main] INFO  org.example.Main - Starting User Service Application
+2026-04-26 16:50:14 [main] ERROR org.example.Main - Application error: No line found
+2026-04-26 16:50:15 [main] INFO  org.example.util.HibernateUtil - SessionFactory closed
+2026-04-26 16:50:15 [main] INFO  org.example.Main - Application shutdown
+2026-04-26 21:47:06 [main] INFO  org.example.Main - Starting User Service Application
+2026-04-26 21:49:09 [main] INFO  org.example.controller.UserController - Controller: Processing create user request for email: ivan@example.com
+2026-04-26 21:49:09 [main] INFO  org.example.service.UserService - Creating user with email: ivan@example.com
+2026-04-26 21:49:10 [main] INFO  org.example.repository.UserRepository - User saved: ivan@example.com
+2026-04-26 21:53:08 [main] INFO  org.example.controller.UserController - Controller: Processing create user request for email: sdfsdf@gmail.com
+2026-04-26 21:53:08 [main] INFO  org.example.service.UserService - Creating user with email: sdfsdf@gmail.com
+2026-04-26 21:53:08 [main] INFO  org.example.repository.UserRepository - User saved: sdfsdf@gmail.com
+2026-04-26 21:53:41 [main] INFO  org.example.controller.UserController - Controller: Processing create user request for email: hsdajdjsa@yandex.ru
+2026-04-26 21:53:41 [main] INFO  org.example.service.UserService - Creating user with email: hsdajdjsa@yandex.ru
+2026-04-26 21:53:41 [main] INFO  org.example.repository.UserRepository - User saved: hsdajdjsa@yandex.ru
+2026-04-26 21:53:44 [main] INFO  org.example.controller.UserController - Controller: Processing get all users request
+2026-04-26 21:53:44 [main] INFO  org.example.service.UserService - Fetching all users
+2026-04-26 21:53:44 [main] INFO  org.example.repository.UserRepository - Found 3 users
+2026-04-26 21:53:56 [main] INFO  org.example.controller.UserController - Controller: Processing get user request for id: 1
+2026-04-26 21:53:56 [main] INFO  org.example.service.UserService - Fetching user with id: 1
+2026-04-26 21:53:56 [main] INFO  org.example.repository.UserRepository - User findById: 1
+2026-04-26 21:54:25 [main] INFO  org.example.controller.UserController - Controller: Processing get user request for id: 3
+2026-04-26 21:54:25 [main] INFO  org.example.service.UserService - Fetching user with id: 3
+2026-04-26 21:54:25 [main] INFO  org.example.repository.UserRepository - User findById: 3
+2026-04-26 21:54:37 [main] INFO  org.example.controller.UserController - Controller: Processing update user request for id: 3
+2026-04-26 21:54:37 [main] INFO  org.example.service.UserService - Updating user with id: 3
+2026-04-26 21:54:37 [main] INFO  org.example.repository.UserRepository - User findById: 3
+2026-04-26 21:54:37 [main] INFO  org.example.repository.UserRepository - User updated: 3
+2026-04-26 21:54:41 [main] INFO  org.example.controller.UserController - Controller: Processing get all users request
+2026-04-26 21:54:41 [main] INFO  org.example.service.UserService - Fetching all users
+2026-04-26 21:54:41 [main] INFO  org.example.repository.UserRepository - Found 3 users
+2026-04-26 21:56:32 [main] INFO  org.example.controller.UserController - Controller: Processing delete user request for id: 3
+2026-04-26 21:56:32 [main] INFO  org.example.service.UserService - Deleting user with id: 3
+2026-04-26 21:56:32 [main] INFO  org.example.repository.UserRepository - User deleted: 3
+2026-04-26 22:00:48 [main] INFO  org.example.Main - Starting User Service Application
+2026-04-26 22:01:17 [main] INFO  org.example.controller.UserController - Controller: Processing create user request for email: выв@gmail.com
+2026-04-26 22:01:17 [main] INFO  org.example.service.UserService - Creating user with email: выв@gmail.com
+2026-04-26 22:01:18 [main] INFO  org.example.repository.UserRepository - User saved: выв@gmail.com
+2026-04-26 22:01:23 [main] ERROR org.example.Main - Application error: No line found
+2026-04-26 22:01:24 [main] INFO  org.example.util.HibernateUtil - SessionFactory closed
+2026-04-26 22:01:24 [main] INFO  org.example.Main - Application shutdown
+2026-04-26 22:01:40 [main] INFO  org.example.Main - Starting User Service Application
+2026-04-26 22:03:59 [main] ERROR org.example.Main - Application error: No line found
+2026-04-26 22:04:00 [main] INFO  org.example.util.HibernateUtil - SessionFactory closed
+2026-04-26 22:04:00 [main] INFO  org.example.Main - Application shutdown
+2026-04-26 22:04:01 [main] INFO  org.example.Main - Starting User Service Application
+2026-04-26 22:04:13 [main] INFO  org.example.controller.UserController - Controller: Processing create user request for email: выфв№юыфвфы
+2026-04-26 22:04:13 [main] INFO  org.example.service.UserService - Creating user with email: выфв№юыфвфы
+2026-04-26 22:04:13 [main] ERROR org.example.controller.UserController - Validation error: Invalid email format
+2026-04-26 22:04:57 [main] INFO  org.example.controller.UserController - Controller: Processing create user request for email: ivam@gmail.com
+2026-04-26 22:04:57 [main] INFO  org.example.service.UserService - Creating user with email: ivam@gmail.com
+2026-04-26 22:04:57 [main] INFO  org.example.repository.UserRepository - User saved: ivam@gmail.com
+2026-04-26 22:05:24 [main] INFO  org.example.controller.UserController - Controller: Processing get all users request
+2026-04-26 22:05:24 [main] INFO  org.example.service.UserService - Fetching all users
+2026-04-26 22:05:24 [main] INFO  org.example.repository.UserRepository - Found 4 users
+2026-04-26 22:22:28 [main] ERROR org.example.Main - Application error: No line found
+2026-04-26 22:22:28 [main] INFO  org.example.util.HibernateUtil - SessionFactory closed
+2026-04-26 22:22:28 [main] INFO  org.example.Main - Application shutdown
+2026-04-26 23:01:03 [main] INFO  org.example.Main - Starting User Service Application
+2026-04-26 23:01:23 [main] INFO  org.example.controller.UserController - Controller: Processing create user request for email: df@gmail.com
+2026-04-26 23:01:23 [main] INFO  org.example.service.UserService - Creating user with email: df@gmail.com
+2026-04-26 23:01:23 [main] WARN  org.hibernate.engine.jdbc.connections.internal.ConnectionProviderInitiator - HHH000022: c3p0 properties were encountered, but the c3p0 provider class was not found on the classpath; these properties are going to be ignored.
+2026-04-26 23:01:23 [main] WARN  org.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-04-26 23:01:23 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-26 23:01:24 [main] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.age,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.name 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+2026-04-26 23:01:24 [main] TRACE org.hibernate.orm.jdbc.bind - binding parameter (1:VARCHAR) <- [df@gmail.com]
+2026-04-26 23:01:24 [main] DEBUG org.hibernate.SQL - 
+    insert 
+    into
+        users
+        (age, created_at, email, name) 
+    values
+        (?, ?, ?, ?)
+2026-04-26 23:01:24 [main] TRACE org.hibernate.orm.jdbc.bind - binding parameter (1:INTEGER) <- [12]
+2026-04-26 23:01:24 [main] TRACE org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-04-26T23:01:24.410680]
+2026-04-26 23:01:24 [main] TRACE org.hibernate.orm.jdbc.bind - binding parameter (3:VARCHAR) <- [df@gmail.com]
+2026-04-26 23:01:24 [main] TRACE org.hibernate.orm.jdbc.bind - binding parameter (4:VARCHAR) <- [тттт]
+2026-04-26 23:01:24 [main] INFO  org.example.repository.UserRepository - User saved: df@gmail.com
+2026-04-26 23:09:03 [main] ERROR org.example.Main - Application error: No line found
+2026-04-26 23:09:03 [main] INFO  org.example.util.HibernateUtil - SessionFactory closed
+2026-04-26 23:09:03 [main] INFO  org.example.Main - Application shutdown
