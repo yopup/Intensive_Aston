@@ -19,3 +19,4 @@
         <mapping class="org.example.entity.User"/>
     </session-factory>
 </hibernate-configuration>
+

@@ -14,23 +14,22 @@ import java.util.stream.Collectors;
 public class UserService {
     private static final Logger logger = LogManager.getLogger(UserService.class);
     private final UserRepository userRepository;
+    private static final String EMAIL_REGEX = "^[^@]+@[^@]+\\.[^@]+$";
 
+    // Конструктор для продакшна
     public UserService() {
         this.userRepository = new UserRepository();
+    }
+
+    // Конструктор для тестов (Dependency Injection)
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public UserResponseDTO createUser(UserRequestDTO requestDTO) {
         logger.info("Creating user with email: {}", requestDTO.getEmail());
 
-        if (requestDTO.getName() == null || requestDTO.getName().trim().isEmpty()) {
-            throw new UserServiceException("Name cannot be empty");
-        }
-        if (requestDTO.getEmail() == null || !requestDTO.getEmail().matches("^[^@]+@[^@]+\\.[^@]+$")) {
-            throw new UserServiceException("Invalid email format");
-        }
-        if (requestDTO.getAge() == null || requestDTO.getAge() < 0 || requestDTO.getAge() > 150) {
-            throw new UserServiceException("Age must be between 0 and 150");
-        }
+        validateUserData(requestDTO.getName(), requestDTO.getEmail(), requestDTO.getAge());
 
         if (userRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
             throw new UserServiceException("User with email already exists");
@@ -66,14 +65,20 @@ public class UserService {
             existingUser.setName(requestDTO.getName());
         }
 
-        if (requestDTO.getEmail() != null && requestDTO.getEmail().matches("^[^@]+@[^@]+\\.[^@]+$")) {
-            userRepository.findByEmail(requestDTO.getEmail())
-                    .ifPresent(user -> {
-                        if (!user.getId().equals(id)) {
-                            throw new UserServiceException("Email " + requestDTO.getEmail() + " already taken");
-                        }
-                    });
-            existingUser.setEmail(requestDTO.getEmail());
+        if (requestDTO.getEmail() != null && !requestDTO.getEmail().trim().isEmpty()) {
+            String newEmail = requestDTO.getEmail();
+            String currentEmail = existingUser.getEmail();
+
+            if (!newEmail.equals(currentEmail)) {
+                if (!newEmail.matches(EMAIL_REGEX)) {
+                    throw new UserServiceException("Invalid email format");
+                }
+                userRepository.findByEmail(newEmail)
+                        .ifPresent(user -> {
+                            throw new UserServiceException("Email " + newEmail + " already taken");
+                        });
+                existingUser.setEmail(newEmail);
+            }
         }
 
         if (requestDTO.getAge() != null && requestDTO.getAge() >= 0 && requestDTO.getAge() <= 150) {
@@ -87,6 +92,18 @@ public class UserService {
     public boolean deleteUser(Long id) {
         logger.info("Deleting user with id: {}", id);
         return userRepository.deleteById(id);
+    }
+
+    private void validateUserData(String name, String email, Integer age) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new UserServiceException("Name cannot be empty");
+        }
+        if (email == null || !email.matches(EMAIL_REGEX)) {
+            throw new UserServiceException("Invalid email format");
+        }
+        if (age == null || age < 0 || age > 150) {
+            throw new UserServiceException("Age must be between 0 and 150");
+        }
     }
 
     private UserResponseDTO convertToResponseDTO(User user) {

@@ -43,3 +43,4 @@ public class UserResponseDTO {
                 id, name, email, age, createdAt);
     }
 }
+

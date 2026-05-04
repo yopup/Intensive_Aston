@@ -21,3 +21,4 @@
         <Logger name="org.hibernate.orm.jdbc.bind" level="trace"/>
     </Loggers>
 </Configuration>
+

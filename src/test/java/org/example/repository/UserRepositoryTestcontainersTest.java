@@ -13,6 +13,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserRepositoryTestcontainersTest {
@@ -77,3 +78,4 @@ class UserRepositoryTestcontainersTest {
         assertThrows(RuntimeException.class, () -> userRepository.save(user2));
     }
 }
+

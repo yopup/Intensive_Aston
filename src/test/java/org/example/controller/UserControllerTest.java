@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +47,7 @@ class UserControllerTest {
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
+        assertEquals("John", result.getName());
         verify(userService, times(1)).createUser(requestDTO);
     }
 
@@ -54,34 +57,41 @@ class UserControllerTest {
         when(userService.createUser(requestDTO)).thenThrow(new UserServiceException("Email exists"));
 
         assertThrows(UserServiceException.class, () -> userController.createUser(requestDTO));
+        verify(userService, times(1)).createUser(requestDTO);
     }
 
     @Test
-    @DisplayName("getUser — should return DTO")
+    @DisplayName("getUser — should return DTO when exists")
     void getUser_shouldReturnDto() {
         when(userService.getUserById(1L)).thenReturn(responseDTO);
 
         UserResponseDTO result = userController.getUser(1L);
 
+        assertNotNull(result);
         assertEquals("john@test.com", result.getEmail());
+        verify(userService, times(1)).getUserById(1L);
     }
 
     @Test
-    @DisplayName("getUser — should throw if service throws")
+    @DisplayName("getUser — should throw when not found")
     void getUser_shouldThrowIfNotFound() {
-        when(userService.getUserById(99L)).thenThrow(new UserServiceException("Not found"));
+        when(userService.getUserById(99L)).thenThrow(new UserServiceException("User not found"));
 
         assertThrows(UserServiceException.class, () -> userController.getUser(99L));
+        verify(userService, times(1)).getUserById(99L);
     }
 
     @Test
-    @DisplayName("getAllUsers — should return list")
+    @DisplayName("getAllUsers — should return list of DTOs")
     void getAllUsers_shouldReturnList() {
-        when(userService.getAllUsers()).thenReturn(List.of(responseDTO));
+        List<UserResponseDTO> expectedList = List.of(responseDTO);
+        when(userService.getAllUsers()).thenReturn(expectedList);
 
         List<UserResponseDTO> result = userController.getAllUsers();
 
         assertEquals(1, result.size());
+        assertEquals("john@test.com", result.get(0).getEmail());
+        verify(userService, times(1)).getAllUsers();
     }
 
     @Test
@@ -92,17 +102,18 @@ class UserControllerTest {
         UserResponseDTO result = userController.updateUser(1L, requestDTO);
 
         assertNotNull(result);
-        verify(userService).updateUser(1L, requestDTO);
+        verify(userService, times(1)).updateUser(1L, requestDTO);
     }
 
     @Test
-    @DisplayName("deleteUser — should return true")
+    @DisplayName("deleteUser — should return true on success")
     void deleteUser_shouldReturnTrue() {
         when(userService.deleteUser(1L)).thenReturn(true);
 
         boolean result = userController.deleteUser(1L);
 
         assertTrue(result);
+        verify(userService, times(1)).deleteUser(1L);
     }
 
     @Test
@@ -111,5 +122,6 @@ class UserControllerTest {
         when(userService.deleteUser(99L)).thenThrow(new RuntimeException("DB error"));
 
         assertThrows(RuntimeException.class, () -> userController.deleteUser(99L));
+        verify(userService, times(1)).deleteUser(99L);
     }
 }

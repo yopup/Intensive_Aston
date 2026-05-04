@@ -10,3 +10,4 @@ public class UserServiceException extends RuntimeException {
         super(message, cause);
     }
 }
+

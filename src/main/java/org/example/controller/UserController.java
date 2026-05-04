@@ -13,8 +13,14 @@ public class UserController {
     private static final Logger logger = LogManager.getLogger(UserController.class);
     private final UserService userService;
 
+    // Конструктор для продакшна
     public UserController() {
         this.userService = new UserService();
+    }
+
+    // Конструктор для тестов (Dependency Injection)
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     public UserResponseDTO createUser(UserRequestDTO requestDTO) {
