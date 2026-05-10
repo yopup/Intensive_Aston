@@ -25,6 +25,7 @@ public class UserService {
         log.info("Creating user with email: {}", requestDTO.getEmail());
 
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
+            log.warn("Email already exists: {}", requestDTO.getEmail());
             throw new UserServiceException("User with email " + requestDTO.getEmail() + " already exists");
         }
 
@@ -65,7 +66,6 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserServiceException("User not found with id: " + id));
 
-        // Check email uniqueness if changed
         if (!requestDTO.getEmail().equals(existingUser.getEmail())) {
             if (userRepository.existsByEmail(requestDTO.getEmail())) {
                 throw new UserServiceException("Email " + requestDTO.getEmail() + " already taken");
