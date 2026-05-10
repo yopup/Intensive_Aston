@@ -5,105 +5,93 @@ import org.example.dto.UserResponseDTO;
 import org.example.entity.User;
 import org.example.exception.UserServiceException;
 import org.example.repository.UserRepository;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
+@Service
+@RequiredArgsConstructor
 public class UserService {
-    private static final Logger logger = LogManager.getLogger(UserService.class);
+
     private final UserRepository userRepository;
-    private static final String EMAIL_REGEX = "^[^@]+@[^@]+\\.[^@]+$";
 
-    // Конструктор для продакшна
-    public UserService() {
-        this.userRepository = new UserRepository();
-    }
-
-    // Конструктор для тестов (Dependency Injection)
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
+    @Transactional
     public UserResponseDTO createUser(UserRequestDTO requestDTO) {
-        logger.info("Creating user with email: {}", requestDTO.getEmail());
+        log.info("Creating user with email: {}", requestDTO.getEmail());
 
-        validateUserData(requestDTO.getName(), requestDTO.getEmail(), requestDTO.getAge());
-
-        if (userRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
-            throw new UserServiceException("User with email already exists");
+        if (userRepository.existsByEmail(requestDTO.getEmail())) {
+            throw new UserServiceException("User with email " + requestDTO.getEmail() + " already exists");
         }
 
-        User user = new User(requestDTO.getName(), requestDTO.getEmail(), requestDTO.getAge());
+        User user = new User();
+        user.setName(requestDTO.getName());
+        user.setEmail(requestDTO.getEmail());
+        user.setAge(requestDTO.getAge());
+
         User saved = userRepository.save(user);
+        log.info("User created with id: {}", saved.getId());
 
         return convertToResponseDTO(saved);
     }
 
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
-        logger.info("Fetching user with id: {}", id);
+        log.info("Fetching user with id: {}", id);
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserServiceException("User not found with id: " + id));
+
         return convertToResponseDTO(user);
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
-        logger.info("Fetching all users");
+        log.info("Fetching all users");
+
         return userRepository.findAll().stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public UserResponseDTO updateUser(Long id, UserRequestDTO requestDTO) {
-        logger.info("Updating user with id: {}", id);
+        log.info("Updating user with id: {}", id);
 
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserServiceException("User not found with id: " + id));
 
-        if (requestDTO.getName() != null && !requestDTO.getName().trim().isEmpty()) {
-            existingUser.setName(requestDTO.getName());
-        }
-
-        if (requestDTO.getEmail() != null && !requestDTO.getEmail().trim().isEmpty()) {
-            String newEmail = requestDTO.getEmail();
-            String currentEmail = existingUser.getEmail();
-
-            if (!newEmail.equals(currentEmail)) {
-                if (!newEmail.matches(EMAIL_REGEX)) {
-                    throw new UserServiceException("Invalid email format");
-                }
-                userRepository.findByEmail(newEmail)
-                        .ifPresent(user -> {
-                            throw new UserServiceException("Email " + newEmail + " already taken");
-                        });
-                existingUser.setEmail(newEmail);
+        // Check email uniqueness if changed
+        if (!requestDTO.getEmail().equals(existingUser.getEmail())) {
+            if (userRepository.existsByEmail(requestDTO.getEmail())) {
+                throw new UserServiceException("Email " + requestDTO.getEmail() + " already taken");
             }
+            existingUser.setEmail(requestDTO.getEmail());
         }
 
-        if (requestDTO.getAge() != null && requestDTO.getAge() >= 0 && requestDTO.getAge() <= 150) {
-            existingUser.setAge(requestDTO.getAge());
-        }
+        existingUser.setName(requestDTO.getName());
+        existingUser.setAge(requestDTO.getAge());
 
-        User updated = userRepository.update(existingUser);
+        User updated = userRepository.save(existingUser);
+        log.info("User updated with id: {}", updated.getId());
+
         return convertToResponseDTO(updated);
     }
 
-    public boolean deleteUser(Long id) {
-        logger.info("Deleting user with id: {}", id);
-        return userRepository.deleteById(id);
-    }
+    @Transactional
+    public void deleteUser(Long id) {
+        log.info("Deleting user with id: {}", id);
 
-    private void validateUserData(String name, String email, Integer age) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new UserServiceException("Name cannot be empty");
+        if (!userRepository.existsById(id)) {
+            throw new UserServiceException("User not found with id: " + id);
         }
-        if (email == null || !email.matches(EMAIL_REGEX)) {
-            throw new UserServiceException("Invalid email format");
-        }
-        if (age == null || age < 0 || age > 150) {
-            throw new UserServiceException("Age must be between 0 and 150");
-        }
+
+        userRepository.deleteById(id);
+        log.info("User deleted with id: {}", id);
     }
 
     private UserResponseDTO convertToResponseDTO(User user) {

@@ -4,76 +4,64 @@ import org.example.dto.UserRequestDTO;
 import org.example.dto.UserResponseDTO;
 import org.example.exception.UserServiceException;
 import org.example.service.UserService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
+@RestController
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
-    private static final Logger logger = LogManager.getLogger(UserController.class);
+
     private final UserService userService;
 
-    // Конструктор для продакшна
-    public UserController() {
-        this.userService = new UserService();
+    @PostMapping
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO requestDTO) {
+        log.info("POST /api/users - Creating user");
+        UserResponseDTO response = userService.createUser(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // Конструктор для тестов (Dependency Injection)
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        log.info("GET /api/users/{} - Fetching user", id);
+        UserResponseDTO response = userService.getUserById(id);
+        return ResponseEntity.ok(response);
     }
 
-    public UserResponseDTO createUser(UserRequestDTO requestDTO) {
-        try {
-            logger.info("Controller: Processing create user request for email: {}", requestDTO.getEmail());
-            return userService.createUser(requestDTO);
-        } catch (IllegalArgumentException e) {
-            logger.error("Validation error: {}", e.getMessage());
-            throw e;
-        } catch (UserServiceException e) {
-            logger.error("Controller: {}", e.getMessage());
-            throw e;
-        }
+    @GetMapping
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        log.info("GET /api/users - Fetching all users");
+        List<UserResponseDTO> response = userService.getAllUsers();
+        return ResponseEntity.ok(response);
     }
 
-    public UserResponseDTO getUser(Long id) {
-        try {
-            logger.info("Controller: Processing get user request for id: {}", id);
-            return userService.getUserById(id);
-        } catch (Exception e) {
-            logger.error("Controller: Error getting user: {}", e.getMessage());
-            throw e;
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserRequestDTO requestDTO) {
+        log.info("PUT /api/users/{} - Updating user", id);
+        UserResponseDTO response = userService.updateUser(id, requestDTO);
+        return ResponseEntity.ok(response);
     }
 
-    public List<UserResponseDTO> getAllUsers() {
-        try {
-            logger.info("Controller: Processing get all users request");
-            return userService.getAllUsers();
-        } catch (Exception e) {
-            logger.error("Controller: Error getting all users: {}", e.getMessage());
-            throw new RuntimeException("Failed to fetch users", e);
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        log.info("DELETE /api/users/{} - Deleting user", id);
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 
-    public UserResponseDTO updateUser(Long id, UserRequestDTO requestDTO) {
-        try {
-            logger.info("Controller: Processing update user request for id: {}", id);
-            return userService.updateUser(id, requestDTO);
-        } catch (Exception e) {
-            logger.error("Controller: Error updating user: {}", e.getMessage());
-            throw e;
-        }
-    }
-
-    public boolean deleteUser(Long id) {
-        try {
-            logger.info("Controller: Processing delete user request for id: {}", id);
-            return userService.deleteUser(id);
-        } catch (Exception e) {
-            logger.error("Controller: Error deleting user: {}", e.getMessage());
-            throw new RuntimeException("Failed to delete user", e);
-        }
+    @ExceptionHandler(UserServiceException.class)
+    public ResponseEntity<String> handleUserServiceException(UserServiceException e) {
+        log.error("Business error: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 }
 

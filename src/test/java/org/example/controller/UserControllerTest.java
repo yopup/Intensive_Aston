@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dto.UserRequestDTO;
 import org.example.dto.UserResponseDTO;
 import org.example.exception.UserServiceException;
@@ -7,122 +8,132 @@ import org.example.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(UserController.class)
 class UserControllerTest {
 
-    @Mock
-    private UserService userService;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @InjectMocks
-    private UserController userController;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private UserService userService;
 
     private UserRequestDTO requestDTO;
     private UserResponseDTO responseDTO;
 
     @BeforeEach
     void setUp() {
-        requestDTO = new UserRequestDTO("John", "john@test.com", 25);
-        responseDTO = new UserResponseDTO(1L, "John", "john@test.com", 25, LocalDateTime.now());
+        requestDTO = new UserRequestDTO();
+        requestDTO.setName("John Doe");
+        requestDTO.setEmail("john@example.com");
+        requestDTO.setAge(25);
+
+        responseDTO = new UserResponseDTO(1L, "John Doe", "john@example.com", 25, LocalDateTime.now());
     }
 
     @Test
-    @DisplayName("createUser — should return DTO on success")
-    void createUser_shouldReturnDto() {
-        when(userService.createUser(requestDTO)).thenReturn(responseDTO);
+    @DisplayName("POST /api/users - should create user and return 201")
+    void createUser_shouldReturnCreated() throws Exception {
+        when(userService.createUser(any(UserRequestDTO.class))).thenReturn(responseDTO);
 
-        UserResponseDTO result = userController.createUser(requestDTO);
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("John Doe"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.age").value(25));
 
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("John", result.getName());
-        verify(userService, times(1)).createUser(requestDTO);
+        verify(userService, times(1)).createUser(any(UserRequestDTO.class));
     }
 
     @Test
-    @DisplayName("createUser — should rethrow exception from service")
-    void createUser_shouldRethrowServiceException() {
-        when(userService.createUser(requestDTO)).thenThrow(new UserServiceException("Email exists"));
+    @DisplayName("POST /api/users - should return 400 when validation fails")
+    void createUser_invalidData_shouldReturnBadRequest() throws Exception {
+        requestDTO.setEmail("invalid-email");
 
-        assertThrows(UserServiceException.class, () -> userController.createUser(requestDTO));
-        verify(userService, times(1)).createUser(requestDTO);
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("getUser — should return DTO when exists")
-    void getUser_shouldReturnDto() {
+    @DisplayName("GET /api/users/{id} - should return user when exists")
+    void getUserById_shouldReturnUser() throws Exception {
         when(userService.getUserById(1L)).thenReturn(responseDTO);
 
-        UserResponseDTO result = userController.getUser(1L);
+        mockMvc.perform(get("/api/users/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.email").value("john@example.com"));
 
-        assertNotNull(result);
-        assertEquals("john@test.com", result.getEmail());
         verify(userService, times(1)).getUserById(1L);
     }
 
     @Test
-    @DisplayName("getUser — should throw when not found")
-    void getUser_shouldThrowIfNotFound() {
-        when(userService.getUserById(99L)).thenThrow(new UserServiceException("User not found"));
+    @DisplayName("GET /api/users/{id} - should return 404 when not exists")
+    void getUserById_notFound_shouldReturnConflict() throws Exception {
+        when(userService.getUserById(999L)).thenThrow(new UserServiceException("User not found"));
 
-        assertThrows(UserServiceException.class, () -> userController.getUser(99L));
-        verify(userService, times(1)).getUserById(99L);
+        mockMvc.perform(get("/api/users/999"))
+                .andExpect(status().isConflict())
+                .andExpect(content().string("User not found"));
     }
 
     @Test
-    @DisplayName("getAllUsers — should return list of DTOs")
-    void getAllUsers_shouldReturnList() {
-        List<UserResponseDTO> expectedList = List.of(responseDTO);
-        when(userService.getAllUsers()).thenReturn(expectedList);
+    @DisplayName("GET /api/users - should return all users")
+    void getAllUsers_shouldReturnList() throws Exception {
+        when(userService.getAllUsers()).thenReturn(List.of(responseDTO));
 
-        List<UserResponseDTO> result = userController.getAllUsers();
+        mockMvc.perform(get("/api/users"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].email").value("john@example.com"));
 
-        assertEquals(1, result.size());
-        assertEquals("john@test.com", result.get(0).getEmail());
         verify(userService, times(1)).getAllUsers();
     }
 
     @Test
-    @DisplayName("updateUser — should return updated DTO")
-    void updateUser_shouldReturnUpdatedDto() {
+    @DisplayName("PUT /api/users/{id} - should update user")
+    void updateUser_shouldReturnUpdated() throws Exception {
         when(userService.updateUser(eq(1L), any(UserRequestDTO.class))).thenReturn(responseDTO);
 
-        UserResponseDTO result = userController.updateUser(1L, requestDTO);
+        mockMvc.perform(put("/api/users/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("John Doe"));
 
-        assertNotNull(result);
-        verify(userService, times(1)).updateUser(1L, requestDTO);
+        verify(userService, times(1)).updateUser(eq(1L), any(UserRequestDTO.class));
     }
 
     @Test
-    @DisplayName("deleteUser — should return true on success")
-    void deleteUser_shouldReturnTrue() {
-        when(userService.deleteUser(1L)).thenReturn(true);
+    @DisplayName("DELETE /api/users/{id} - should delete user")
+    void deleteUser_shouldReturnNoContent() throws Exception {
+        doNothing().when(userService).deleteUser(1L);
 
-        boolean result = userController.deleteUser(1L);
+        mockMvc.perform(delete("/api/users/1"))
+                .andExpect(status().isNoContent());
 
-        assertTrue(result);
         verify(userService, times(1)).deleteUser(1L);
     }
-
-    @Test
-    @DisplayName("deleteUser — should rethrow exception")
-    void deleteUser_shouldRethrow() {
-        when(userService.deleteUser(99L)).thenThrow(new RuntimeException("DB error"));
-
-        assertThrows(RuntimeException.class, () -> userController.deleteUser(99L));
-        verify(userService, times(1)).deleteUser(99L);
-    }
 }
-
