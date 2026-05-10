@@ -15,7 +15,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserServiceException.class)
     public ResponseEntity<String> handleUserServiceException(UserServiceException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+
+        if (e.getMessage().contains("not found")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

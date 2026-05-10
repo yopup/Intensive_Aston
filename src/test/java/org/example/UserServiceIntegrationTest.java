@@ -40,7 +40,6 @@ class UserServiceIntegrationTest {
     @Test
     @DisplayName("Full CRUD flow should work")
     void fullCrudFlow_shouldWork() {
-        // 1. Create user
         UserRequestDTO createRequest = new UserRequestDTO();
         createRequest.setName("Integration Test");
         createRequest.setEmail("integration@test.com");
@@ -54,25 +53,21 @@ class UserServiceIntegrationTest {
 
         Long userId = createResponse.getBody().getId();
 
-        // 2. Get user
         ResponseEntity<UserResponseDTO> getResponse = restTemplate
                 .getForEntity("/api/users/" + userId, UserResponseDTO.class);
 
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertEquals("integration@test.com", getResponse.getBody().getEmail());
 
-        // 3. Update user
         createRequest.setName("Updated Name");
         restTemplate.put("/api/users/" + userId, createRequest);
 
-        // 4. Delete user
         restTemplate.delete("/api/users/" + userId);
 
-        // 5. Verify deleted
         ResponseEntity<UserResponseDTO> afterDelete = restTemplate
                 .getForEntity("/api/users/" + userId, UserResponseDTO.class);
 
-        assertEquals(HttpStatus.CONFLICT, afterDelete.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, afterDelete.getStatusCode());
     }
 }
 

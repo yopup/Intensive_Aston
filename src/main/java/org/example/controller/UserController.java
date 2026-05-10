@@ -57,11 +57,5 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
-    @ExceptionHandler(UserServiceException.class)
-    public ResponseEntity<String> handleUserServiceException(UserServiceException e) {
-        log.error("Business error: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-    }
 }
 
