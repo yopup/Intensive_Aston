@@ -1,5 +1,7 @@
 package org.example.exception;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -7,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,18 +17,20 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserServiceException.class)
-    public ResponseEntity<String> handleUserServiceException(UserServiceException e) {
-
-        if (e.getMessage().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(e.getMessage());
-        }
-
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(e.getMessage());
+    @ApiResponse(responseCode = "409", description = "Business logic error")
+    public ResponseEntity<ErrorResponse> handleUserServiceException(UserServiceException e) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                e.getMessage(),
+                "/api/users"
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ApiResponse(responseCode = "400", description = "Validation error")
     public ResponseEntity<Map<String, String>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
 
@@ -39,9 +44,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal server error: " + e.getMessage());
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception e) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                e.getMessage(),
+                "/api/users"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
-}
 
+    // Внутренний класс для ошибок
+    record ErrorResponse(LocalDateTime timestamp, int status, String error, String message, String path) {}
+}

@@ -92,11 +92,13 @@ class UserControllerTest {
     @Test
     @DisplayName("GET /api/users/{id} - should return 404 when not exists")
     void getUserById_notFound_shouldReturnConflict() throws Exception {
-        when(userService.getUserById(999L)).thenThrow(new UserServiceException("User not found"));
+
+        when(userService.getUserById(999L))
+                .thenThrow(new UserServiceException("User not found"));
 
         mockMvc.perform(get("/api/users/999"))
                 .andExpect(status().isConflict())
-                .andExpect(content().string("User not found"));
+                .andExpect(jsonPath("$.message").value("User not found"));
     }
 
     @Test
@@ -106,8 +108,8 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].email").value("john@example.com"));
+                .andExpect(jsonPath("$._embedded.users.length()").value(1))
+                .andExpect(jsonPath("$._embedded.users[0].email").value("john@example.com"));
 
         verify(userService, times(1)).getAllUsers();
     }
@@ -135,5 +137,38 @@ class UserControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(userService, times(1)).deleteUser(1L);
+    }
+
+    @Test
+    @DisplayName("GET /api/users/{id} - should return HATEOAS links")
+    void getUserById_shouldReturnHateoasLinks() throws Exception {
+
+        UserResponseDTO responseDTO = new UserResponseDTO(1L, "John", "john@test.com", 25, LocalDateTime.now());
+        when(userService.getUserById(1L)).thenReturn(responseDTO);
+
+        mockMvc.perform(get("/api/users/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._links").exists())
+                .andExpect(jsonPath("$._links.self.href").exists())
+                .andExpect(jsonPath("$._links.update.href").exists())
+                .andExpect(jsonPath("$._links.delete.href").exists())
+                .andExpect(jsonPath("$._links['all-users'].href").exists());
+    }
+
+    @Test
+    @DisplayName("GET /api/users - should return collection HATEOAS links")
+    void getAllUsers_shouldReturnCollectionHateoasLinks() throws Exception {
+
+        List<UserResponseDTO> users = List.of(
+                new UserResponseDTO(1L, "John", "john@test.com", 25, LocalDateTime.now())
+        );
+
+        when(userService.getAllUsers()).thenReturn(users);
+
+        mockMvc.perform(get("/api/users"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._links").exists())
+                .andExpect(jsonPath("$._links.self.href").exists())
+                .andExpect(jsonPath("$._links.create.href").exists());
     }
 }
